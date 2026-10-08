@@ -118,7 +118,6 @@ GROUP BY 1
 ORDER BY merchandise_gmv_brl DESC;
 
 -- 08 Naive Join Warning
--- DEMONSTRATION ONLY: WRONG way to compute sales (can double-count).
 SELECT
     ROUND(SUM(TRY_CAST(i.price AS DOUBLE)), 2) AS incorrect_merchandise_gmv_brl
 FROM orders o
