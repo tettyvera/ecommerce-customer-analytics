@@ -1,11 +1,6 @@
 -- Project #2: Olist E-Commerce Customer & Sales Analytics
--- DuckDB; assumes CSVs are under data/ when running locally, or views are already registered from the notebook.
--- From repository root, keep original Olist CSVs in data/ or edit paths below.
--- In Google Colab, execute Lesson_3_Olist_SQL_Business_Analysis.ipynb first.
--- Merchandise GMV = sum(item.price) for delivered orders, excluding freight. NOT net revenue.
 
--- SETUP: raw data and safe order-level analytical views
--- Raw CSV views: keep source files unchanged.
+
 CREATE OR REPLACE VIEW orders AS
 SELECT * FROM read_csv_auto('data/olist_orders_dataset.csv', header=true);
 CREATE OR REPLACE VIEW customers AS
