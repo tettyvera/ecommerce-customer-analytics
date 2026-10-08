@@ -4,18 +4,8 @@ SELECT * FROM read_csv_auto('data/olist_orders_dataset.csv', header=true);
 CREATE OR REPLACE VIEW customers AS
 SELECT * FROM read_csv_auto('data/olist_customers_dataset.csv', header=true);
 
--- ===============================================================
--- Lesson 4: Customer Cohort & Monthly Retention (Olist)
--- DuckDB SQL | Reporting cutoff: 2018-08-31 (inclusive)
--- Grain: one delivered order -> one customer-month -> one cohort cell
--- Definition: first observed delivered order's PURCHASE month.
--- Uses customer_unique_id; customer_id is specific to an order.
--- ===============================================================
-
 -- 01. Source customer purchase events: one row per delivered order.
--- Cutoff makes the analysis reproducible and avoids the very last
--- partial observation months. "delivered" is a final order status,
--- so these are not point-in-time delivery states as of the cutoff.
+-- Cutoff makes the analysis reproducible and avoids the very last partial observation months. "delivered" is a final order status, so these are not point-in-time delivery states as of the cutoff.
 CREATE OR REPLACE VIEW v_delivered_customer_orders AS
 SELECT
     o.order_id,
@@ -30,8 +20,7 @@ WHERE o.order_status = 'delivered'
   AND TRY_CAST(o.order_purchase_timestamp AS TIMESTAMP) < TIMESTAMP '2018-09-01 00:00:00';
 
 -- 02. Deduplicate customers within each purchase month.
--- Multiple orders by the same buyer in one month count once
--- towards that month's active buyers.
+-- Multiple orders by the same buyer in one month count once towards that month's active buyers.
 CREATE OR REPLACE VIEW v_customer_months AS
 SELECT DISTINCT customer_unique_id, purchase_month
 FROM v_delivered_customer_orders;
@@ -51,9 +40,7 @@ SELECT
 FROM v_customer_months cm
 JOIN first_month fm USING (customer_unique_id);
 
--- 04. Retention matrix: months 0 to 6, with zero for observed
--- months with no return purchases. Unobserved future months
--- are not included (never interpreted as 0% retention).
+-- 04. Retention matrix: months 0 to 6, with zero for observed months with no return purchases. Unobserved future months are not included (never interpreted as 0% retention).
 CREATE OR REPLACE VIEW v_cohort_retention AS
 WITH cohort_sizes AS (
     SELECT cohort_month, COUNT(DISTINCT customer_unique_id) AS cohort_size
@@ -98,7 +85,6 @@ SELECT * FROM v_cohort_retention
 ORDER BY cohort_month, month_number;
 
 -- 07. Check observed repeat customer rate before cutoff.
--- This is different from month-one retention.
 WITH customer_orders AS (
   SELECT customer_unique_id, COUNT(DISTINCT order_id) AS n_orders
   FROM v_delivered_customer_orders
